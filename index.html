@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <div class="card">
+    <div class="search">
+      <input type="text" class="search-bar" placeholder="Search city...">
+      <button aria-label="Search">
+        <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1.5em" width="1.5em" xmlns="http://www.w3.org/2000/svg">
+          <path d="M909.6 854.5L641.4 586.3C690.3 525.5 720 448.2 720 364c0-196.6-159.4-356-356-356S8 167.4 8 364s159.4 356 356 356c84.2 0 161.5-29.7 222.3-78.6l268.2 268.2c9.2 9.2 24.1 9.2 33.3 0l21.8-21.8c9.2-9.2 9.2-24.1 0-33.3zM364 640c-152.4 0-276-123.6-276-276s123.6-276 276-276 276 123.6 276 276-123.6 276-276 276z"></path>
+        </svg>
+      </button>
+    </div>
+<button class="use-location">Use My Location</button>
+
+    <div class="weather loading">
+      <h2 class="city"></h2>
+      <div class="time"></div>
+      
+      <h1 class="temp"></h1>
+      
+      <div class="temp-details">
+        <div class="feels-like"></div>
+        <div class="hi-low">
+          <span class="temp_max"></span>
+          <span class="temp_min"></span>
+        </div>
+      </div>
+
+      <div class="flex">
+        <img src="" alt="" class="icon">
+        <div class="description"></div>
+      </div>
+
+      <div class="details-grid">
+        <div class="humidity"></div>
+        <div class="wind-container">
+          <span class="wind"></span>
+          <span class="deg"></span>
+        </div>
+      </div>
+
+      <div class="hourly-forecast-container">
+        <h3>Hourly Forecast</h3>
+        <div class="forecast-panel-wrapper">
+          <div class="hourly-forecast">
+            </div>
+        </div>
+      </div>
+
+      <div class="daily-forecast-container">
+        <h3>5 Day Forecast</h3>
+        <div class="forecast-panel-wrapper">
+          <div class="daily-forecast">
+            </div>
+        </div>
+      </div>
+
+      <footer class="footnote"></footer>
+    </div>
+  </div>
+</body>
+
+</html>
