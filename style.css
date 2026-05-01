@@ -20,7 +20,7 @@ body {
 
 .card {
   background: rgba(0, 0, 0, 0.7); /* More solid background */
-  padding: 2em;
+  padding: 1.2em;
   border-radius: 30px;
   width: 95%;
   max-width: 420px;
@@ -82,7 +82,7 @@ button:hover {
 
 /* Softer numbers (weight 600) */
 .temp {
-  font-size: 4.5rem;
+  font-size: 3.2rem;
   font-weight: 600; 
   margin: 0; 
   line-height: 1;
@@ -115,8 +115,8 @@ button:hover {
 }
 
 .icon {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   margin-left: -10px;
 }
 
@@ -196,9 +196,9 @@ h3 {
 
 /* --- Fixed Forecast Item Alignment --- */
 .forecast-item {
-  flex: 0 0 85px;
+  flex: 0 0 70px;
   background: rgba(255, 255, 255, 0.1);
-  padding: 12px;
+  padding: 8px;
   border-radius: 15px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   
