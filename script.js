@@ -98,7 +98,7 @@ let weather = {
     const $container = $(".hourly-forecast");
     $container.empty();
 
-    const nextHours = list.slice(0, 10);
+    const nextHours = list.slice(0, 4);
 
     nextHours.forEach((item) => {
       const time = getLocalDate(item.dt);
@@ -119,7 +119,7 @@ let weather = {
     const $container = $(".daily-forecast");
     $container.empty();
 
-    for (let i = 8; i < list.length; i += 8) {
+    for (let i = 8; i < 32; i += 8) {
       const item = list[i];
       const day = getLocalDate(item.dt);
       const temp = Math.round(item.main.temp);
