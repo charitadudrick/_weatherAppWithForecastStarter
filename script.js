@@ -10,221 +10,182 @@ let degreesLabel = DegreeUnits.Celsius;
 let speedLabel = SpeedUnits.KPH;
 
 /* --- Helper Functions --- */
-const getLocalDate = (dt) =>
-  new Date(dt * 1000).toLocaleString([], {
-    weekday: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const getLocalDate = (dt) => new Date(dt * 1000).toLocaleString([], {
+    weekday: 'long', hour: '2-digit', minute: '2-digit'
+});
 
 function getCardinalDirection(angle) {
-  const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-  return directions[Math.round(angle / 45) % 8];
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return directions[Math.round(angle / 45) % 8];
 }
 
 /* --- Weather Object --- */
 let weather = {
-  apiKey: "82005d27a116c2880c8f0fcb866998a0",
+    apiKey: "82005d27a116c2880c8f0fcb866998a0",
 
-  fetchWeather: function (city) {
-    $(".weather").addClass("loading");
+    fetchWeather: function (city) {
+        $(".weather").addClass("loading");
 
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${units}&appid=${this.apiKey}`;
+    $.getJSON(`https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${units}&appid=${this.apiKey}`)
+        .done((data) => {
+            userCity = data.name;
+            this.displayWeather(data);
+            this.fetchForecast(userCity);
+        })
+        .fail(() => {
+            $(".city").text("City not found");
+            $(".weather").removeClass("loading");
+        });
+},
+    
 
-    $.getJSON(url)
-      .done((data) => {
-        userCity = data.name;
-        this.displayWeather(data);
-        this.fetchForecast(userCity);
-      })
-      .fail(() => {
-        $(".city").text("City not found");
-        $(".weather").removeClass("loading");
-      });
-  },
+    displayWeather: function (data) {
+       const { name } = data;
+       const { temp, humidity } = data.main;
+       const { description, icon } = data.weather[0];
+       const { speed, deg } = data.wind;
 
-  displayWeather: function (data) {
-    const {
-      name,
-      main: { temp, feels_like, humidity, temp_max, temp_min },
-      weather: weatherArr,
-      wind: { speed, deg },
-    } = data;
-
-    const desc = weatherArr[0].description;
-    const capDesc = desc.charAt(0).toUpperCase() + desc.slice(1);
-
-    $(".city").text(name);
+    $(".city").text(`Weather in ${name}`);
     $(".temp").text(`${Math.round(temp)}${degreesLabel}`);
-    $(".description").text(capDesc);
-
-    // Main weather icon
-    const iconCode = weatherArr[0].icon;
-    $(".icon").attr("src", `https://openweathermap.org/img/wn/${iconCode}@2x.png`);
-
-    $(".feels-like").text(`Feels like: ${Math.round(feels_like)}${degreesLabel}`);
+    $(".description").text(description);
     $(".humidity").text(`Humidity: ${humidity}%`);
-
-    // Wind split into two elements
-    $(".wind").text(`Wind: ${Math.round(speed)}${speedLabel}`);
-    $(".deg").text(getCardinalDirection(deg));
-
-    // High / Low temps
-    $(".temp_max").text(`High: ${Math.round(temp_max)}${degreesLabel}`);
-    $(".temp_min").text(`Low: ${Math.round(temp_min)}${degreesLabel}`);
+    $(".wind").text(`Wind: ${Math.round(speed)}${speedLabel} ${getCardinalDirection(deg)}`);
+    $(".icon").attr("src", `https://openweathermap.org/img/wn/${icon}.png`);
 
     // Unsplash background
-    const unsplashUrl = `https://api.unsplash.com/search/photos?query=${name}&client_id=${unsplashKey}`;
-    $.getJSON(unsplashUrl).done((imgData) => {
-      if (imgData.results && imgData.results.length > 0) {
-        const bgUrl = imgData.results[0].urls.regular;
-        $("body").css("background-image", `url(${bgUrl})`);
-      }
-    });
+    $.getJSON(`https://api.unsplash.com/photos/random?query=${name}&client_id=${unsplashKey}`)
+        .done((imgData) => {
+            $("body").css("background-image", `url(${imgData.urls.full})`);
+        });
 
     $(".weather").removeClass("loading");
-  },
+},
+    
 
-  fetchForecast: function (city) {
-    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${units}&appid=${this.apiKey}`;
+fetchForecast: function (city) {
+    $.getJSON(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&units=${units}&appid=${this.apiKey}`)
+        .done((data) => {
+            this.displayHourly(data.list);
+            this.displayDaily(data.list);
+        });
+},  
+        
 
-    $.getJSON(url).done((data) => {
-      this.displayHourly(data.list);
-      this.displayDaily(data.list);
+    displayHourly: function (list) {
+        const $container = $(".hourly-forecast");
+        $container.empty();
+        
+    list.slice(0, 10).forEach(item => {
+        const time = getLocalDate(item.dt);
+        const temp = Math.round(item.main.temp);
+        const icon = item.weather[0].icon;
+        const pop = Math.round(item.pop * 100);
+
+        $container.append(`
+            <div class="card">
+                <p>${time}</p>
+                <img src="https://openweathermap.org/img/wn/${icon}.png">
+                <p>${temp}${degreesLabel}</p>
+                <p>${pop}% rain</p>
+            </div>
+        `);
     });
-  },
 
-  displayHourly: function (list) {
-    const $container = $(".hourly-forecast");
-    $container.empty();
+    setTimeout(checkInitialScroll, 0);
+},
+    
 
-    const nextHours = list.slice(0, 4);
+    displayDaily: function (list) {
+        const $container = $(".daily-forecast");
+        $container.empty();
+        for (let i = 0; i < list.length; i += 8) {
+        const item = list[i];
+        const date = new Date(item.dt * 1000).toLocaleDateString([], { weekday: 'long' });
+        const temp = Math.round(item.main.temp);
+        const icon = item.weather[0].icon;
 
-    nextHours.forEach((item) => {
-      const time = getLocalDate(item.dt);
-      const temp = Math.round(item.main.temp);
-      const icon = item.weather[0].icon;
-
-      $container.append(`
-        <div class="hour-card">
-          <p>${time}</p>
-          <img src="https://openweathermap.org/img/wn/${icon}.png" alt="">
-          <p>${temp}${degreesLabel}</p>
-        </div>
-      `);
-    });
-  },
-
-  displayDaily: function (list) {
-    const $container = $(".daily-forecast");
-    $container.empty();
-
-    for (let i = 8; i < 32; i += 8) {
-      const item = list[i];
-      const day = getLocalDate(item.dt);
-      const temp = Math.round(item.main.temp);
-      const pop = Math.round(item.pop * 100);
-      const icon = item.weather[0].icon;
-
-      $container.append(`
-        <div class="day-card">
-          <p>${day}</p>
-          <img src="https://openweathermap.org/img/wn/${icon}.png" alt="">
-          <p>${temp}${degreesLabel}</p>
-          <p>Rain: ${pop}%</p>
-        </div>
-      `);
+        $container.append(`
+            <div class="card">
+                <p>${date}</p>
+                <img src="https://openweathermap.org/img/wn/${icon}.png">
+                <p>${temp}${degreesLabel}</p>
+            </div>
+        `);
     }
-  },
 
-  search: function () {
-    const value = $(".search-bar").val();
-    if (value.trim() !== "") {
-      this.fetchWeather(value.trim());
-      $(".search-bar").val("");
+    setTimeout(checkInitialScroll, 0);
+
+    },
+    
+    search: function () {
+    const value = $(".search-bar").val().trim();
+    if (value) {
+        this.fetchWeather(value);
+        $(".search-bar").val("");
+        
     }
-  },
+}
 };
 
-/* --- GPS Weather Fetch --- */
-function fetchWeatherByCoords(lat, lon) {
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=${units}&appid=${weather.apiKey}`;
+/* --- Geolocation --- */
 
-  $.getJSON(url)
-    .done((data) => {
-      userCity = data.name;
-      weather.displayWeather(data);
-      weather.fetchForecast(userCity);
-    })
-    .fail(() => {
-      $(".city").text("Location not found");
-      $(".weather").removeClass("loading");
-    });
-}
-
-/* --- Geolocation (IP fallback) --- */
-function fetchUserCity() {
-  const geoApiKey = "841afa96ceb940da8f6157a7f16cc527";
-  const url = `https://api.geoapify.com/v1/ipinfo?apiKey=${geoApiKey}`;
-
-  $.getJSON(url)
-    .done((data) => {
-      if (data.city && data.city.name) {
-        userCity = data.city.name;
-      }
-    })
-    .always(() => {
-      weather.fetchWeather(userCity);
-    });
-}
 
 /* --- App Initialization --- */
+function fetchUserCity() {
+    const geoApiKey = "841afa96ceb940da8f6157a7f16cc527";
+
+    $.getJSON(`https://api.geoapify.com/v1/ipinfo?apiKey=${geoApiKey}`)
+        .done((data) => {
+            if (data.city && data.city.name) {
+                userCity = data.city.name;
+            }
+        })
+        .always(() => {
+            weather.fetchWeather(userCity);
+        });
+}
+
+function handleScrollArrows() {
+    $(".forecast-container").each(function () {
+        const $this = $(this);
+        const scrollLeft = $this.scrollLeft();
+        const maxScroll = this.scrollWidth - $this.outerWidth();
+
+        $this.siblings(".left-arrow").toggleClass("is-visible", scrollLeft > 10);
+        $this.siblings(".right-arrow").toggleClass("is-visible", scrollLeft < maxScroll);
+    });
+}
+
+function checkInitialScroll() {
+    handleScrollArrows();
+}
+
 $(function () {
-  // IP fallback on load
-  fetchUserCity();
+    fetchUserCity();
 
-  // Use My Location button
-  $(".use-location").on("click", function () {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          fetchWeatherByCoords(
-            position.coords.latitude,
-            position.coords.longitude
-          );
-        },
-        () => {
-          alert("Unable to access your location");
+    $(".temp").on("click", () => {
+        if (units === "metric") {
+            units = "imperial";
+            degreesLabel = DegreeUnits.Fahrenheit;
+            speedLabel = SpeedUnits.MPH;
+        } else {
+            units = "metric";
+            degreesLabel = DegreeUnits.Celsius;
+            speedLabel = SpeedUnits.KPH;
         }
-      );
-    } else {
-      alert("Geolocation not supported");
-    }
-  });
 
-  // Unit toggle
-  $(".temp").on("click", function () {
-    if (units === "metric") {
-      units = "imperial";
-      degreesLabel = DegreeUnits.Fahrenheit;
-      speedLabel = SpeedUnits.MPH;
-    } else {
-      units = "metric";
-      degreesLabel = DegreeUnits.Celsius;
-      speedLabel = SpeedUnits.KPH;
-    }
-    weather.fetchWeather(userCity);
-  });
+        weather.fetchWeather(userCity);
+    });
 
-  // Search button
-  $(".search button").on("click", function () {
-    weather.search();
-  });
+    $(".search button").on("click", () => {
+        weather.search();
+    });
 
-  // Enter key
-  $(".search-bar").on("keyup", function (e) {
-    if (e.key === "Enter") {
-      weather.search();
-    }
-  });
+    $(".search-bar").on("keypress", function (e) {
+        if (e.key === "Enter") {
+            weather.search();
+        }
+    });
 });
+   
+    
